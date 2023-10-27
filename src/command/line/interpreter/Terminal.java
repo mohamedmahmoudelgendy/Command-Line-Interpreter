@@ -23,8 +23,6 @@ public class Terminal {
         while(true){
             parser.parse(input.nextLine());
             this.chooseCommandAction(parser);
-            parser.clearFullCommand();
-            parser.clearCommandName();
             parser.clearArgs();
         }
     }
