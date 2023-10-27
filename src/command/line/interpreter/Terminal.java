@@ -15,27 +15,36 @@ import java.util.Vector;
  * @author Medo
  */
 public class Terminal {
-    private String fullcommand;
     private Parser parser = new Parser();
     
     
     public void open(){
         Scanner input = new Scanner(System.in);
-        fullcommand = input.nextLine();
-        parser.parse(fullcommand);
-        this.pwd();
-        parser.clearArgs();
-        parser.clearCommandName();
-        fullcommand = input.nextLine();
-        parser.parse(fullcommand);
-        this.cd(parser.getArgs());
-        parser.clearArgs();
-        parser.clearCommandName();
-        fullcommand = input.nextLine();
-        parser.parse(fullcommand);
-//        this.echo(parser.getArgs());
-//        this.ls();
-        this.pwd();
+        while(true){
+            parser.parse(input.nextLine());
+            this.chooseCommandAction(parser);
+            parser.clearFullCommand();
+            parser.clearCommandName();
+            parser.clearArgs();
+        }
+    }
+    
+    public void chooseCommandAction(Parser parser){
+        if(parser.getCommandName().equals("echo")){
+            this.echo(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("cd")){
+            this.cd(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("pwd")){
+            this.pwd();
+        }
+        else if(parser.getCommandName().equals("ls") || parser.getCommandName().equals("ls -r")){
+            this.ls();
+        }
+        else if(parser.getCommandName().equals("exit")){
+            System.exit(0);
+        }
     }
     
     public void echo(Vector<String> args){
@@ -43,7 +52,7 @@ public class Terminal {
             System.out.println("Erorr this command takes arguments ");
         }
         else{
-            System.out.println(fullcommand.replace("echo ",""));
+            System.out.println(parser.getFullCommand().replace("echo ",""));
         }
     }
     
@@ -88,11 +97,9 @@ public class Terminal {
         else if(args.size() == 1 && args.get(0).equals("..")){
             File previousDirectory = new File(System.getProperty("user.dir")).getParentFile();
             System.setProperty("user.dir", previousDirectory.getAbsolutePath());
-            System.out.println(System.getProperty("user.dir"));
         }
         else{
-            String fullpath = fullcommand ;
-            fullpath = fullpath.replace("cd ","");
+            String fullpath = parser.getFullCommand().replace("cd ","");
             boolean flag = false ;
             
             for(String i : new File(System.getProperty("user.dir")).list()){

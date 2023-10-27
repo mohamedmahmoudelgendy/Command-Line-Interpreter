@@ -7,7 +7,7 @@ package command.line.interpreter;
 import java.util.*;
 
 public class Parser {
-   
+    private String fullCommand;
     private String commandName ;
     private Vector<String> args = new Vector<String>() ;
    
@@ -16,34 +16,32 @@ public class Parser {
              return false;
         }
         else{
-             for(String i : input.split("\\s+")){
-                 args.add(i);
-             }
-             if(args.size() == 1){
-                 commandName = args.get(0) ;
-                 args.remove(0);
-             }
-             else{
-                 if(args.get(1).equals("-r")){
-                     commandName = args.get(0) + " " + args.get(1) ;
-                     args.remove(0);
-                     args.remove(0);
-                 }
-                 else{
-                     commandName = args.get(0);
-                     args.remove(0);
-                 }
-             }
-             return true ;
+            fullCommand = input ;
+            for(String i : input.split("\\s+")){
+                args.add(i);
+            }
+            if(args.size() == 1){
+                commandName = args.get(0) ;
+                args.remove(0);
+            }
+            else{
+                if(args.get(1).equals("-r")){
+                    commandName = args.get(0) + " " + args.get(1) ;
+                    args.remove(0);
+                    args.remove(0);
+                }
+                else{
+                    commandName = args.get(0);
+                    args.remove(0);
+                }
+            }
+            commandName.toLowerCase();
+            return true ;
         }
     }
-        
-    public void clearArgs(){
-        args.clear();
-    }
-    
-    public void clearCommandName(){
-        commandName = "" ;
+
+    public String getFullCommand() {
+        return fullCommand;
     }
     
     public String getCommandName() {
@@ -54,6 +52,16 @@ public class Parser {
         return args;
     }
     
+    public void clearFullCommand(){
+        fullCommand = "" ;
+    }
+    
+    public void clearCommandName(){
+        commandName = "" ;
+    }
+    
+    public void clearArgs(){
+        args.clear();
+    }
+    
 }
-
-
