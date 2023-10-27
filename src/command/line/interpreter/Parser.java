@@ -37,7 +37,15 @@ public class Parser {
              return true ;
         }
     }
-
+        
+    public void clearArgs(){
+        args.clear();
+    }
+    
+    public void clearCommandName(){
+        commandName = "" ;
+    }
+    
     public String getCommandName() {
         return commandName;
     }

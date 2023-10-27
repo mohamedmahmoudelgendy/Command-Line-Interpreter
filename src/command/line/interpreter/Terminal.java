@@ -23,11 +23,19 @@ public class Terminal {
         Scanner input = new Scanner(System.in);
         fullcommand = input.nextLine();
         parser.parse(fullcommand);
-//        this.pwd();
+        this.pwd();
+        parser.clearArgs();
+        parser.clearCommandName();
+        fullcommand = input.nextLine();
+        parser.parse(fullcommand);
         this.cd(parser.getArgs());
+        parser.clearArgs();
+        parser.clearCommandName();
+        fullcommand = input.nextLine();
+        parser.parse(fullcommand);
 //        this.echo(parser.getArgs());
 //        this.ls();
-//        this.pwd();
+        this.pwd();
     }
     
     public void echo(Vector<String> args){
@@ -90,7 +98,6 @@ public class Terminal {
             for(String i : new File(System.getProperty("user.dir")).list()){
                 if(fullpath.equals(i)){
                     System.setProperty("user.dir",new File(fullpath).getAbsolutePath());
-                    System.out.println(System.getProperty("user.dir"));
                     flag = true ;
                     break ;
                 }
@@ -100,7 +107,6 @@ public class Terminal {
             if(flag == false){
                 if(Files.exists(path)){
                     System.setProperty("user.dir", fullpath);
-                    System.out.println(System.getProperty("user.dir"));
                 }
                 else{
                     System.out.println("Error wrong path"); 
