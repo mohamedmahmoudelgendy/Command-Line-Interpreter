@@ -90,7 +90,6 @@ public class Terminal {
     public void cd(Vector<String> args){
         if(args.isEmpty()){
             System.setProperty("user.dir", System.getProperty("user.home"));
-            System.out.println(System.getProperty("user.dir"));
         }
         else if(args.size() == 1 && args.get(0).equals("..")){
             File previousDirectory = new File(System.getProperty("user.dir")).getParentFile();
