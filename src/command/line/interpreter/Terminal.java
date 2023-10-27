@@ -25,6 +25,7 @@ public class Terminal {
         parser.parse(fullcommand);
 //        this.pwd();
         this.cd(parser.getArgs());
+//        this.echo(parser.getArgs());
 //        this.ls();
 //        this.pwd();
     }
@@ -34,8 +35,7 @@ public class Terminal {
             System.out.println("Erorr this command takes arguments ");
         }
         else{
-            String cout = fullcommand ;
-            System.out.println(cout.replace("echo",""));
+            System.out.println(fullcommand.replace("echo ",""));
         }
     }
     
@@ -84,23 +84,25 @@ public class Terminal {
         }
         else{
             String fullpath = fullcommand ;
-            fullpath.replace("cd","");
-            Path path = Paths.get(fullpath);
-            if(Files.exists(path)){
-                System.setProperty("user.dir", fullpath);
-                System.out.println(System.getProperty("user.dir"));
-            }
-            else{
-                boolean flag = false ;
-                for(String i : new File(System.getProperty("user.dir")).list()){
-                    if(fullpath.equals(i)){
-                        System.setProperty("user.dir",new File(fullpath).getAbsolutePath());
-                        System.out.println(System.getProperty("user.dir"));
-                        flag = true ;
-                        break ;
-                    }
+            fullpath = fullpath.replace("cd ","");
+            boolean flag = false ;
+            
+            for(String i : new File(System.getProperty("user.dir")).list()){
+                if(fullpath.equals(i)){
+                    System.setProperty("user.dir",new File(fullpath).getAbsolutePath());
+                    System.out.println(System.getProperty("user.dir"));
+                    flag = true ;
+                    break ;
                 }
-                if(flag == false){
+            }
+            
+            Path path = Paths.get(fullpath);
+            if(flag == false){
+                if(Files.exists(path)){
+                    System.setProperty("user.dir", fullpath);
+                    System.out.println(System.getProperty("user.dir"));
+                }
+                else{
                     System.out.println("Error wrong path"); 
                 }
             }
