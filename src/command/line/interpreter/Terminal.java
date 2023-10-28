@@ -3,7 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package command.line.interpreter;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +41,12 @@ public class Terminal {
         }
         else if(parser.getCommandName().equals("ls") || parser.getCommandName().equals("ls -r")){
             this.ls();
+        }
+        else if(parser.getCommandName().equals("wc")){
+            this.wc(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("touch")){
+            this.touch(parser.getArgs());
         }
         else if(parser.getCommandName().equals("exit")){
             System.exit(0);
@@ -114,6 +122,77 @@ public class Terminal {
                 }
                 else{
                     System.out.println("Error wrong path"); 
+                }
+            }
+        }
+    }
+    
+    public void wc(Vector<String> args) {
+        if (args.isEmpty()) {
+            System.out.println("Error: Missing file path.");
+        } else {
+            String filePath = parser.getFullCommand().replace("wc ", "");
+
+            boolean flag = false ;
+            Path path ;
+            for(String i : new File(System.getProperty("user.dir")).list()){
+                if(filePath.equals(i)){
+                    path = Paths.get(System.getProperty("user.dir"), filePath);
+                    flag = true ;
+                    break ;
+                }
+            }
+            
+            path = Paths.get(filePath);
+            if(flag == false){
+                if (Files.exists(path)) {
+                    path = Paths.get(filePath);
+                } 
+                else{
+                    System.out.println("Error wrong path");
+                    return ;
+                }
+            }
+
+            try (BufferedReader reader = Files.newBufferedReader(path)) {
+                int lineCount = 0;
+                int wordCount = 0;
+                int charCount = 0;
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    lineCount++;
+                    charCount += line.length();
+                    String[] words = line.split("\\s+"); // Split by whitespace
+                    wordCount += words.length;
+                }
+
+                System.out.println(lineCount + " " + wordCount + " " + charCount + " " + path.getFileName());
+            } catch (IOException e) {
+                System.err.println("Error: " + e.getMessage() + " (file not found)");
+            }
+        }
+    }
+    
+    public void touch(Vector<String> args) {
+        if (args.isEmpty()) {
+            System.out.println("Error: Missing file path.");
+        } else {
+            String filePath = parser.getFullCommand().replace("touch ", "");
+
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                try {
+                    Files.createFile(path);
+                    System.out.println("File created: " + path.getFileName());
+                } catch (IOException e) {
+                    System.err.println("Error: " + e.getMessage());
+                }
+            } else {
+                if (Files.isDirectory(path)) {
+                    System.err.println("Error: Cannot create a file in a directory.");
+                } else {
+                    System.out.println("Warning: File already exists: " + path.getFileName());
                 }
             }
         }
