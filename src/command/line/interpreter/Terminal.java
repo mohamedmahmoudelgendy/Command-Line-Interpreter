@@ -23,6 +23,7 @@ public class Terminal {
     public void open(){
         Scanner input = new Scanner(System.in);
         while(true){
+            System.out.print(System.getProperty("user.dir") + " >");
             parser.parse(input.nextLine());
             this.chooseCommandAction(parser);
             parser.clearArgs();
