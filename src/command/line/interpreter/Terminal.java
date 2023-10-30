@@ -167,25 +167,33 @@ public class Terminal {
     }
     
     public void touch(Vector<String> args) {
-        if (args.isEmpty()) {
-            System.out.println("Error: Missing file path.");
-        } else {
-            String filePath = parser.getFullCommand().replace("touch ", "");
-
-            Path path = Paths.get(filePath);
-            if (!Files.exists(path)) {
-                try {
-                    Files.createFile(path);
-                    System.out.println("File created: " + path.getFileName());
-                } catch (IOException e) {
-                    System.err.println("Error: " + e.getMessage());
+        if (args.size() != 1) {
+            System.out.println("Error this command take 1 argument \nNote: path with spaces must be in \" \" ");
+        } 
+        else{
+            String fullpath = parser.getArgs().get(0) ;
+            if((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
+            }
+            try {
+                Path path = Paths.get(fullpath);
+                if (!Files.exists(path)) {
+                        Files.createFile(path);
+                        System.out.println("File created: " + path.getFileName());
                 }
-            } else {
-                if (Files.isDirectory(path)) {
-                    System.err.println("Error: Cannot create a file in a directory.");
-                } else {
-                    System.out.println("Warning: File already exists: " + path.getFileName());
+                else{
+                    if (Files.isDirectory(path)) {
+                        System.err.println("Error: Cannot create a file in a directory without file name.");
+                    } else {
+                        System.out.println("Warning: File already exists: " + path.getFileName());
+                    }
                 }
+            }
+            catch (InvalidPathException e) {
+                System.err.println("Error: Invalid file path ");
+            }
+            catch (IOException e) {
+                System.err.println("Error: Invalid file path ");
             }
         }
     }
