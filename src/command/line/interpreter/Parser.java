@@ -5,6 +5,8 @@
 package command.line.interpreter;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Parser {
     private String fullCommand;
@@ -17,9 +19,13 @@ public class Parser {
         }
         else{
             fullCommand = input ;
-            for(String i : input.split("\\s+")){
-                args.add(i);
+            Pattern pattern = Pattern.compile("\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)?\"|(?:\\S+)");
+            Matcher matcher = pattern.matcher(input);
+
+            while (matcher.find()) {
+                args.add(matcher.group());
             }
+
             if(args.size() == 1){
                 commandName = args.get(0) ;
                 args.remove(0);
