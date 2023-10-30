@@ -127,47 +127,40 @@ public class Terminal {
     }
     
     public void wc(Vector<String> args) {
-        if (args.isEmpty()) {
-            System.out.println("Error: Missing file path.");
+        if (args.size() != 1) {
+            System.out.println("Error this command take 1 argument \nNote: path with spaces must be in \" \" ");
         } else {
-            String filePath = parser.getFullCommand().replace("wc ", "");
-
-            boolean flag = false ;
             Path path ;
-            for(String i : new File(System.getProperty("user.dir")).list()){
-                if(filePath.equals(i)){
-                    path = Paths.get(System.getProperty("user.dir"), filePath);
-                    flag = true ;
-                    break ;
+            String fullpath = parser.getArgs().get(0) ;
+            try {
+                if((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                    fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                 }
-            }
-            
-            path = Paths.get(filePath);
-            if(flag == false){
-                if (Files.exists(path)) {
-                    path = Paths.get(filePath);
-                } 
+                path = Paths.get(fullpath);
+                if(Files.exists(path)){
+                    BufferedReader reader = Files.newBufferedReader(path);
+                    int lineCount = 0;
+                    int wordCount = 0;
+                    int charCount = 0;
+
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        lineCount++;
+                        charCount += line.length();
+                        String[] words = line.split("\\s+"); // Split by whitespace
+                        wordCount += words.length;
+                    }
+
+                    System.out.println(lineCount + " " + wordCount + " " + charCount + " " + path.getFileName());
+                }
                 else{
-                    System.out.println("Error wrong path");
-                    return ;
+                    System.out.println("Error: Invalid file path ");
                 }
             }
-
-            try (BufferedReader reader = Files.newBufferedReader(path)) {
-                int lineCount = 0;
-                int wordCount = 0;
-                int charCount = 0;
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    lineCount++;
-                    charCount += line.length();
-                    String[] words = line.split("\\s+"); // Split by whitespace
-                    wordCount += words.length;
-                }
-
-                System.out.println(lineCount + " " + wordCount + " " + charCount + " " + path.getFileName());
-            } catch (IOException e) {
+            catch (InvalidPathException e) {
+                System.err.println("Error: Invalid file path ");
+            }
+            catch (IOException e) {
                 System.err.println("Error: " + e.getMessage() + " (file not found)");
             }
         }
