@@ -99,31 +99,30 @@ public class Terminal {
         if(args.isEmpty()){
             System.setProperty("user.dir", System.getProperty("user.home"));
         }
-        else if(args.size() == 1 && args.get(0).equals("..")){
+        else if(args.size() == 1 && (args.get(0).equals("..") || (args.get(0).equals("\"..\"")))){
             File previousDirectory = new File(System.getProperty("user.dir")).getParentFile();
             System.setProperty("user.dir", previousDirectory.getAbsolutePath());
         }
-        else{
-            String fullpath = parser.getFullCommand().replace("cd ","");
-            boolean flag = false ;
-            
-            for(String i : new File(System.getProperty("user.dir")).list()){
-                if(fullpath.equals(i)){
-                    System.setProperty("user.dir",new File(fullpath).getAbsolutePath());
-                    flag = true ;
-                    break ;
+        else if(args.size() == 1){
+            Path path ;
+            String fullpath = parser.getArgs().get(0) ;
+            try {
+                if((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                    fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                 }
-            }
-            
-            Path path = Paths.get(fullpath);
-            if(flag == false){
+                path = Paths.get(fullpath);
                 if(Files.exists(path)){
                     System.setProperty("user.dir", fullpath);
                 }
                 else{
-                    System.out.println("Error wrong path"); 
+                    System.out.println("Error: Invalid file path ");
                 }
+            }catch (InvalidPathException e) {
+                System.err.println("Error: Invalid file path ");
             }
+        }
+        else{
+            System.out.println("Error this command thke 0 or 1 argument \nNote: path with spases must be in \" \" ");
         }
     }
     
