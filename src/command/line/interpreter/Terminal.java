@@ -198,5 +198,80 @@ public class Terminal {
             }
         }
     }
+
+    public void cat(Vector<String> args) {
+        if (args.isEmpty() || args.size() > 2) {
+            System.out.println("Error this command take 1 argument \nNote: path with spaces must be in \" \" ");
+        }
+        else{
+            try{
+                if (args.size() == 1) {
+                    String fullpath = args.get(0);
+                    if((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                        fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
+                    }
+                    
+                    Path path = Paths.get(fullpath);
+                    if (!Files.exists(path)) {
+                        System.err.println("Error: Invalid file path ");
+                    }
+                    else{   
+                        try {
+                            File file = new File(fullpath);
+                            Scanner scanner = new Scanner(file);
+                            while (scanner.hasNextLine()) {
+                                System.out.println(scanner.nextLine());
+                            }
+                            scanner.close();
+                        } catch (FileNotFoundException e) {
+                            System.out.println("File not found: " + fullpath);
+                        }
+                    }
+                } 
+                else if (args.size() == 2) {
+                    String fullpath = args.get(0);
+                    String fullpath2 = args.get(1);
+
+                    if((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                        fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
+                    }
+                    if((parser.getArgs().get(1).charAt(0) == '"') || (parser.getArgs().get(1).charAt(parser.getArgs().get(1).length()-1) == '"')){
+                        fullpath2 = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
+                    }
+                        
+                    Path path = Paths.get(fullpath);
+                    Path path2 = Paths.get(fullpath2);
+
+                    if (!Files.exists(path) || !Files.exists(path2) ) {
+                        System.err.println("Error: Invalid file path ");
+                    }
+                    else{
+                        try {
+                            File file1 = new File(fullpath);
+                            Scanner scanner1 = new Scanner(file1);
+                            File file2 = new File(fullpath2);
+                            Scanner scanner2 = new Scanner(file2);
+
+                            while (scanner1.hasNextLine() || scanner2.hasNextLine()) {
+                                if (scanner1.hasNextLine()) {
+                                    System.out.println(scanner1.nextLine());
+                                }
+                                if (scanner2.hasNextLine()) {
+                                    System.out.println(scanner2.nextLine());
+                                }
+                            }
+                            scanner1.close();
+                            scanner2.close();
+                        } catch (FileNotFoundException e) {
+                            System.out.println("File not found: " + fullpath + " or " + fullpath2);
+                        }
+                    }
+                }
+            }
+            catch (InvalidPathException e) {
+                System.err.println("Error: Invalid file path ");
+            }
+        }
+    }
     
 }
