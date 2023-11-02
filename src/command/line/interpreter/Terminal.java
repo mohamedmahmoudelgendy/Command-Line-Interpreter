@@ -3,12 +3,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package command.line.interpreter;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.PseudoColumnUsage;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
@@ -18,7 +18,7 @@ import java.util.Vector;
  */
 public class Terminal {
     private Parser parser = new Parser();
-    
+    private Vector<String> commands = new Vector<>();
     
     public void open() throws IOException {
         Scanner input = new Scanner(System.in);
@@ -50,10 +50,20 @@ public class Terminal {
             this.touch(parser.getArgs());
         } else if(parser.getCommandName().equals("cp")){
             this.cp(parser.getArgs());
+        } else if(parser.getCommandName().equals("cat")){
+            this.cat(parser.getArgs());
+        } else if(parser.getCommandName().equals("history")){
+            this.history();
         }
-        else if(parser.getCommandName().equals("exit")){
+
+        // store the command into vector for History usage
+        commands.add(parser.getFullCommand());
+
+
+        if(parser.getCommandName().equals("exit")){
             System.exit(0);
         }
+
     }
     
     public void echo(Vector<String> args){
@@ -298,7 +308,7 @@ public class Terminal {
             // cut the second file name from the whole command --- cp a.txt b.txt = b.txt
             secFile = fileName.split(" ")[1];
             Path file2 = Paths.get(secFile);
-//            System.out.println("\n" + firstFile);
+//            System.out.println("\n" + file2);
 
             // checks if the second file exists if not creates one
             if(!Files.exists(file2)) {
@@ -306,22 +316,42 @@ public class Terminal {
                     Files.createFile(file2);
                     System.out.println("File created: " + file2.getFileName());
 
-                    // the problem is that it sees only the files in the current diractory !
+                    // the problem that it is not in the current dir so its cannot see file
 
                     // copy code here
+
                     File myFile1 = new File(file1.getFileName().toString());
-                    System.out.println("\n" + myFile1.getName());
                     File myFile2 = new File(file2.getFileName().toString());
-                    int i;
-                    FileInputStream in = new FileInputStream(myFile1);
+                    int e;
+
+//                    BufferedReader reader = Files.newBufferedReader(file1);
+                    FileInputStream ins = new FileInputStream(myFile1);
                     FileOutputStream out = new FileOutputStream(myFile2);
 
-                    while ((i =  in.read()) != -1){
-                        out.write(i);
+//                    String line;
+//                    while((line = reader.readLine()) != null) {
+
+//                    }
+                    // the problem is in this line
+//                    FileInputStream in = new FileInputStream(myFile1);
+//                    FileOutputStream out = new FileOutputStream(myFile2);
+
+                    try {
+                        // the problem is that its not enter the loop!!
+                        while ((e = ins.read()) != -1) {
+                            System.out.println("(char) i");
+                            out.write(e);
+                        }
                     }
 
 
-                    in.close();
+                    catch(Exception s) {
+                        System.out.println("Error Found: "+s.getMessage());
+                    }
+                    System.out.println("\n after loop");
+
+
+                    ins.close();
                     out.close();
 
 
@@ -356,5 +386,21 @@ public class Terminal {
 
 
     }
+
+    public void history() {
+
+        // to check if it has an args
+        if(parser.getFullCommand().length() != 7) {
+            System.out.println("Error: No arguments needed in history command");
+            return;
+        }
+
+        int i = 1;
+        for (String str : commands) {
+            System.out.println(i + "    " +str);
+            i++;
+        }
+    }
+
     
 }
