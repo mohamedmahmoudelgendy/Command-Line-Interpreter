@@ -3,12 +3,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package command.line.interpreter;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.PseudoColumnUsage;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
@@ -20,7 +20,7 @@ public class Terminal {
     private Parser parser = new Parser();
     
     
-    public void open(){
+    public void open() throws IOException {
         Scanner input = new Scanner(System.in);
         while(true){
             System.out.print(System.getProperty("user.dir") + " >");
@@ -30,7 +30,7 @@ public class Terminal {
         }
     }
     
-    public void chooseCommandAction(Parser parser){
+    public void chooseCommandAction(Parser parser) throws IOException {
         if(parser.getCommandName().equals("echo")){
             this.echo(parser.getArgs());
         }
@@ -48,6 +48,8 @@ public class Terminal {
         }
         else if(parser.getCommandName().equals("touch")){
             this.touch(parser.getArgs());
+        } else if(parser.getCommandName().equals("cp")){
+            this.cp(parser.getArgs());
         }
         else if(parser.getCommandName().equals("exit")){
             System.exit(0);
@@ -272,6 +274,87 @@ public class Terminal {
                 System.err.println("Error: Invalid file path ");
             }
         }
+    }
+
+
+    public void cp(Vector<String> args) throws IOException {
+        String firstFile, secFile;
+
+        // cp ----- cp a.txt -- both wrong
+        if(args.isEmpty() || args.size() == 1) {
+            System.out.println("Error: Missing file name(s). 2 file names are required");
+        } else{
+            // to remove the "cp" from the command and copy the file name
+            String fileName = parser.getFullCommand().replace("cp ", "");
+
+            // to handle if the first file even not created
+            firstFile = fileName.split(" ")[0];
+            Path file1 = Paths.get(firstFile);
+            if(!Files.exists(file1)) {
+                System.out.print("Error: File " + firstFile + " is not exists!\n");
+                return;
+            }
+
+            // cut the second file name from the whole command --- cp a.txt b.txt = b.txt
+            secFile = fileName.split(" ")[1];
+            Path file2 = Paths.get(secFile);
+//            System.out.println("\n" + firstFile);
+
+            // checks if the second file exists if not creates one
+            if(!Files.exists(file2)) {
+                try {
+                    Files.createFile(file2);
+                    System.out.println("File created: " + file2.getFileName());
+
+                    // the problem is that it sees only the files in the current diractory !
+
+                    // copy code here
+                    File myFile1 = new File(file1.getFileName().toString());
+                    System.out.println("\n" + myFile1.getName());
+                    File myFile2 = new File(file2.getFileName().toString());
+                    int i;
+                    FileInputStream in = new FileInputStream(myFile1);
+                    FileOutputStream out = new FileOutputStream(myFile2);
+
+                    while ((i =  in.read()) != -1){
+                        out.write(i);
+                    }
+
+
+                    in.close();
+                    out.close();
+
+
+                    System.out.println("Copied successfully to: " + file2.getFileName());
+                } catch (IOException e) {
+                    System.err.println("Error: " + e.getMessage());
+                }
+            } else {
+                if (Files.isDirectory(file2)) {
+                    System.err.println("Error: The path ends with directory name not file.");
+                } else {
+                    // copy code
+                    File myFile1 = new File(file1.getFileName().toString());
+                    System.out.println("\n" + myFile1.getName());
+                    File myFile2 = new File(file2.getFileName().toString());
+                    int i;
+                    FileInputStream in = new FileInputStream(myFile1);
+                    FileOutputStream out = new FileOutputStream(myFile2);
+
+                    while ((i =  in.read()) != -1){
+                        out.write(i);
+                    }
+
+
+                    in.close();
+                    out.close();
+                    System.out.println("Copied successfully to: " + file2.getFileName());
+                }
+            }
+
+        }
+
+
     }
     
 }

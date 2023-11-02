@@ -4,6 +4,8 @@
  */
 package command.line.interpreter;
 
+import java.io.IOException;
+
 /**
  *
  * @author Medo
@@ -11,7 +13,7 @@ package command.line.interpreter;
 public class CommandLineInterpreter {
     
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Terminal terminal = new Terminal(); 
         terminal.open();
     }
