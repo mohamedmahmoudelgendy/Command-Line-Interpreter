@@ -43,7 +43,14 @@ public class Terminal {
             this.wc(parser.getArgs());
         } else if (parser.getCommandName().equals("touch")) {
             this.touch(parser.getArgs());
-        } else if (parser.getCommandName().equals("cp")) {
+        }
+          else if(parser.getCommandName().equals("mkdir")){
+            this.mkdir(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("rmdir")){
+            this.rmdir(parser.getArgs());
+        }
+          else if (parser.getCommandName().equals("cp")) {
             this.cp(parser.getArgs());
         } else if (parser.getCommandName().equals("cat")) {
             this.cat(parser.getArgs());
@@ -325,7 +332,44 @@ public class Terminal {
                 i++;
             }
         }
+    public void mkdir(Vector<String> args) {
+        for (String arg : args) {
+            File directory = new File(arg);
+            if (directory.mkdirs()) {
+                System.out.println("Directory created: " + directory.getAbsolutePath());
+            } else {
+                System.out.println("Failed to create directory: " + directory.getAbsolutePath());
+            }
+        }
+    }
+    public void rmdir(Vector<String> args) throws IOException {
 
+        for (String arg : args) {
+
+            if (arg.equals("*")) {
+                File currentDir = new File(".");
+                File[] subDirs = currentDir.listFiles();
+
+                if (subDirs != null) {
+                    for (File subDir : subDirs) {
+                        if (subDir.isDirectory() && subDir.list().length == 0) {
+                            subDir.delete();
+                            System.out.println("Removed empty directory: " + subDir.getName());
+                        }
+                    }
+                }
+            } else if (arg.length() > 1) {
+
+                File dir = new File(arg);
+                if (dir.isDirectory() && dir.list().length == 0) {
+                    dir.delete();
+                    System.out.println("Removed empty directory: " + dir.getName());
+                } else {
+                    System.out.println("Directory not found or not empty: " + dir.getName());
+                }
+            }
+        }
+    }
 
     }
 
