@@ -41,7 +41,7 @@ public class Parser {
                     args.remove(0);
                 }
             }
-            commandName.toLowerCase();
+            commandName = commandName.toLowerCase();
             return true ;
         }
     }
