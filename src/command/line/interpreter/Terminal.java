@@ -3,12 +3,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package command.line.interpreter;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
@@ -18,139 +21,158 @@ import java.util.Vector;
  */
 public class Terminal {
     private Parser parser = new Parser();
-    private Vector<String> commands = new Vector<>();
-
-    public void open() throws IOException {
+    private Vector<String> History = new Vector<String>() ;
+    
+    public void open(){
         Scanner input = new Scanner(System.in);
-        while (true) {
+        while(true){
             System.out.print(System.getProperty("user.dir") + " >");
             parser.parse(input.nextLine());
+            this.History.add(parser.getFullCommand());
             this.chooseCommandAction(parser);
             parser.clearArgs();
         }
     }
-
-    public void chooseCommandAction(Parser parser) throws IOException {
-        if (parser.getCommandName().equals("echo")) {
+    
+    public void chooseCommandAction(Parser parser){
+        if(parser.getCommandName().equals("echo")){
             this.echo(parser.getArgs());
-        } else if (parser.getCommandName().equals("cd")) {
+        }
+        else if(parser.getCommandName().equals("cd")){
             this.cd(parser.getArgs());
-        } else if (parser.getCommandName().equals("pwd")) {
+        }
+        else if(parser.getCommandName().equals("pwd")){
             this.pwd();
-        } else if (parser.getCommandName().equals("ls") || parser.getCommandName().equals("ls -r")) {
+        }
+        else if(parser.getCommandName().equals("ls") || parser.getCommandName().equals("ls -r")){
             this.ls();
-        } else if (parser.getCommandName().equals("wc")) {
+        }
+        else if(parser.getCommandName().equals("wc")){
             this.wc(parser.getArgs());
-        } else if (parser.getCommandName().equals("touch")) {
+        }
+        else if(parser.getCommandName().equals("touch")){
             this.touch(parser.getArgs());
         }
-          else if(parser.getCommandName().equals("mkdir")){
+        else if(parser.getCommandName().equals("cat")){
+            this.cat(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("cp")){
+            this.cp(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("cp -r")){
+            this.cp_r(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("rm")){
+            this.rm(parser.getArgs());
+        }
+        else if(parser.getCommandName().equals("mkdir")){
             this.mkdir(parser.getArgs());
         }
-        else if(parser.getCommandName().equals("rmdir")){
-            this.rmdir(parser.getArgs());
-        }
-          else if (parser.getCommandName().equals("cp")) {
-            this.cp(parser.getArgs());
-        } else if (parser.getCommandName().equals("cat")) {
-            this.cat(parser.getArgs());
-        } else if (parser.getCommandName().equals("history")) {
+        else if(parser.getCommandName().equals("history")){
             this.history();
         }
-
-        // store the command into vector for History usage
-        commands.add(parser.getFullCommand());
-
-
-        if (parser.getCommandName().equals("exit")) {
+        else if(parser.getCommandName().equals("exit")){
             System.exit(0);
         }
-
-    }
-
-    public void echo(Vector<String> args) {
-        if (args.isEmpty()) {
-            System.out.println("Erorr this command takes arguments ");
-        } else {
-            System.out.println(parser.getFullCommand().replace("echo ", ""));
+        else{
+            System.out.println("Error Wrong command");
         }
     }
-
-    public void pwd() {
-        if (!parser.getArgs().isEmpty()) {
+    
+    public void echo(Vector<String> args){
+        if(args.isEmpty()){
+            System.out.println("Erorr this command takes arguments ");
+        }
+        else{
+            System.out.println(parser.getFullCommand().replace("echo ",""));
+        }
+    }
+    
+    public void pwd(){
+        if(!parser.getArgs().isEmpty()){
             System.out.println("Error this command takes no arguments ");
-        } else {
+        }
+        else{
             System.out.println(System.getProperty("user.dir"));
         }
     }
-
+    
     // this fun = ls and ls -r
-    public void ls() {
-        if (!parser.getArgs().isEmpty()) {
+    public void ls(){
+        if(!parser.getArgs().isEmpty()){
             System.out.println("Error this command takes no arguments ");
-        } else {
+        }
+        else{
             File currentDirectory = new File(System.getProperty("user.dir"));
             Vector<File> filesList = new Vector<File>();
             for (File i : currentDirectory.listFiles()) {
                 filesList.add(i);
             }
-
+            
             filesList.sort((f1, f2) -> f1.getName().compareTo(f2.getName()));
-
-            if (parser.getCommandName().equals("ls -r")) {
+            
+            if(parser.getCommandName().equals("ls -r")){
                 Collections.reverse(filesList);
             }
-
+            
             for (File i : filesList) {
                 System.out.println(i.getName());
             }
         }
     }
-
-    public void cd(Vector<String> args) {
-        if (args.isEmpty()) {
+    
+    public void cd(Vector<String> args){
+        if(args.isEmpty()){
             System.setProperty("user.dir", System.getProperty("user.home"));
-        } else if (args.size() == 1 && (args.get(0).equals("..") || (args.get(0).equals("\"..\"")))) {
+        }
+        else if(args.size() == 1 && (args.get(0).equals("..") || (args.get(0).equals("\"..\"")))){
             File previousDirectory = new File(System.getProperty("user.dir")).getParentFile();
             System.setProperty("user.dir", previousDirectory.getAbsolutePath());
-        } else if (args.size() == 1) {
-            Path path;
-            String fullpath = parser.getArgs().get(0);
+        }
+        else if(args.size() == 1){
+            Path path ;
+            String fullpath = parser.getArgs().get(0) ;
             try {
-                if ((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length() - 1) == '"')) {
-                    fullpath = parser.getArgs().get(0).substring(1, parser.getArgs().get(0).length() - 1);
+                if((parser.getArgs().get(0).charAt(0) == '"') && (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                    fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                 }
+                path = Paths.get(System.getProperty("user.dir"),fullpath);
+                if(Files.exists(path)){
+                    System.setProperty("user.dir", System.getProperty("user.dir")+"\\"+fullpath);
+                }
+
+            }
+            catch (InvalidPathException e) {
                 path = Paths.get(fullpath);
-                if (Files.exists(path)) {
+                if(Files.exists(path)){
                     System.setProperty("user.dir", fullpath);
-                } else {
+                }
+                else{
                     System.out.println("Error: Invalid file path ");
                 }
-            } catch (InvalidPathException e) {
-                System.err.println("Error: Invalid file path ");
             }
-        } else {
+        }
+        else{
             System.out.println("Error this command thke 0 or 1 argument \nNote: path with spases must be in \" \" ");
         }
     }
-
+    
     public void wc(Vector<String> args) {
         if (args.size() != 1) {
             System.out.println("Error this command take 1 argument \nNote: path with spaces must be in \" \" ");
         } else {
-            Path path;
-            String fullpath = parser.getArgs().get(0);
+            Path path ;
+            String fullpath = parser.getArgs().get(0) ;
             try {
-                if ((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length() - 1) == '"')) {
-                    fullpath = parser.getArgs().get(0).substring(1, parser.getArgs().get(0).length() - 1);
+                if((parser.getArgs().get(0).charAt(0) == '"') && (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                    fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                 }
                 path = Paths.get(fullpath);
-                if (Files.exists(path)) {
+                if(Files.exists(path)){
                     BufferedReader reader = Files.newBufferedReader(path);
                     int lineCount = 0;
                     int wordCount = 0;
                     int charCount = 0;
-
                     String line;
                     while ((line = reader.readLine()) != null) {
                         lineCount++;
@@ -158,42 +180,48 @@ public class Terminal {
                         String[] words = line.split("\\s+"); // Split by whitespace
                         wordCount += words.length;
                     }
-
                     System.out.println(lineCount + " " + wordCount + " " + charCount + " " + path.getFileName());
-                } else {
+                }
+                else{
                     System.out.println("Error: Invalid file path ");
                 }
-            } catch (InvalidPathException e) {
+            }
+            catch (InvalidPathException e) {
                 System.err.println("Error: Invalid file path ");
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 System.err.println("Error: " + e.getMessage() + " (file not found)");
             }
         }
     }
-
+    
     public void touch(Vector<String> args) {
         if (args.size() != 1) {
             System.out.println("Error this command take 1 argument \nNote: path with spaces must be in \" \" ");
-        } else {
-            String fullpath = parser.getArgs().get(0);
-            if ((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length() - 1) == '"')) {
-                fullpath = parser.getArgs().get(0).substring(1, parser.getArgs().get(0).length() - 1);
+        } 
+        else{
+            String fullpath = parser.getArgs().get(0) ;
+            if((parser.getArgs().get(0).charAt(0) == '"') && (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
             }
             try {
                 Path path = Paths.get(fullpath);
                 if (!Files.exists(path)) {
-                    Files.createFile(path);
-                    System.out.println("File created: " + path.getFileName());
-                } else {
+                        Files.createFile(path);
+                        System.out.println("File created: " + path.getFileName());
+                }
+                else{
                     if (Files.isDirectory(path)) {
                         System.err.println("Error: Cannot create a file in a directory without file name.");
                     } else {
                         System.out.println("Warning: File already exists: " + path.getFileName());
                     }
                 }
-            } catch (InvalidPathException e) {
+            }
+            catch (InvalidPathException e) {
                 System.err.println("Error: Invalid file path ");
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 System.err.println("Error: Invalid file path ");
             }
         }
@@ -202,18 +230,20 @@ public class Terminal {
     public void cat(Vector<String> args) {
         if (args.isEmpty() || args.size() > 2) {
             System.out.println("Error this command take 1 argument \nNote: path with spaces must be in \" \" ");
-        } else {
-            try {
+        }
+        else{
+            try{
                 if (args.size() == 1) {
                     String fullpath = args.get(0);
-                    if ((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length() - 1) == '"')) {
-                        fullpath = parser.getArgs().get(0).substring(1, parser.getArgs().get(0).length() - 1);
+                    if((parser.getArgs().get(0).charAt(0) == '"') && (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                        fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                     }
 
                     Path path = Paths.get(fullpath);
                     if (!Files.exists(path)) {
                         System.err.println("Error: Invalid file path ");
-                    } else {
+                    }
+                    else{   
                         try {
                             File file = new File(fullpath);
                             Scanner scanner = new Scanner(file);
@@ -225,23 +255,25 @@ public class Terminal {
                             System.out.println("File not found: " + fullpath);
                         }
                     }
-                } else if (args.size() == 2) {
+                } 
+                else if (args.size() == 2) {
                     String fullpath = args.get(0);
                     String fullpath2 = args.get(1);
 
-                    if ((parser.getArgs().get(0).charAt(0) == '"') || (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length() - 1) == '"')) {
-                        fullpath = parser.getArgs().get(0).substring(1, parser.getArgs().get(0).length() - 1);
+                    if((parser.getArgs().get(0).charAt(0) == '"') && (parser.getArgs().get(0).charAt(parser.getArgs().get(0).length()-1) == '"')){
+                        fullpath = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                     }
-                    if ((parser.getArgs().get(1).charAt(0) == '"') || (parser.getArgs().get(1).charAt(parser.getArgs().get(1).length() - 1) == '"')) {
-                        fullpath2 = parser.getArgs().get(0).substring(1, parser.getArgs().get(0).length() - 1);
+                    if((parser.getArgs().get(1).charAt(0) == '"') && (parser.getArgs().get(1).charAt(parser.getArgs().get(1).length()-1) == '"')){
+                        fullpath2 = parser.getArgs().get(0).substring(1,parser.getArgs().get(0).length()-1) ;
                     }
 
                     Path path = Paths.get(fullpath);
                     Path path2 = Paths.get(fullpath2);
 
-                    if (!Files.exists(path) || !Files.exists(path2)) {
+                    if (!Files.exists(path) || !Files.exists(path2) ) {
                         System.err.println("Error: Invalid file path ");
-                    } else {
+                    }
+                    else{
                         try {
                             File file1 = new File(fullpath);
                             Scanner scanner1 = new Scanner(file1);
@@ -263,114 +295,187 @@ public class Terminal {
                         }
                     }
                 }
-            } catch (InvalidPathException e) {
+            }
+            catch (InvalidPathException e) {
                 System.err.println("Error: Invalid file path ");
             }
         }
     }
-
+    
     public void cp(Vector<String> args) {
-        String firstFile, secFile;
+        if (args.size() != 2) {
+            System.out.println("Error: this command takes 2 arguments");
+            return;
+        }
 
+        String sourcePath = args.get(0);
+        String destinationPath = args.get(1);
+        
+        if((sourcePath.charAt(0) == '"') && (sourcePath.charAt(sourcePath.length()-1) == '"')){
+            sourcePath = sourcePath.substring(1,sourcePath.length()-1) ;
+        }
+        
+        if((destinationPath.charAt(0) == '"') && (destinationPath.charAt(destinationPath.length()-1) == '"')){
+            destinationPath = destinationPath.substring(1,destinationPath.length()-1) ;
+        }
 
-        // cp ----- cp a.txt -- both wrong
-        if (args.isEmpty() || args.size() == 1) {
-            System.out.println("Error: Missing file name(s). 2 file names are required");
-        } else {
-            // to remove the "cp" from the command and copy the file name
-            String fileName = parser.getFullCommand().replace("cp ", "");
+        File sourceFile = new File(sourcePath);
+        if (!sourceFile.exists()) {
+            System.err.println("Source file does not exist: " + sourcePath);
+            return;
+        }
 
-            // to handle if the first file even not created
-            firstFile = fileName.split(" ")[0];
-            Path file1 = Paths.get(firstFile);
-            if (!Files.exists(file1)) {
-                System.out.print("Error: File " + firstFile + " is not exists!\n");
-                return;
-            }
+        File destinationFile = new File(destinationPath);
+        if (!destinationFile.exists()) {
+            System.err.println("destination file does not exist: " + sourcePath);
+            return;
+        }
+        
+        if (!destinationFile.canWrite()) {
+            System.err.println("Destination file is not writable: " + destinationPath);
+            return;
+        }
 
-            // cut the second file name from the whole command --- cp a.txt b.txt = b.txt
-            secFile = fileName.split(" ")[1];
+        if (sourceFile.getAbsolutePath().equals(destinationFile.getAbsolutePath())) {
+            System.err.println("Source and destination files are the same");
+            return;
+        }
 
-            System.out.println(System.getProperty("user.dir"));
-            try {
-
-                // Create input and output streams
-                FileInputStream inputStream = new FileInputStream(System.getProperty("user.dir") + "\\" + firstFile);
-                FileOutputStream outputStream = new FileOutputStream(System.getProperty("user.dir") + "\\" +secFile);
-
-
-                int bytesRead;
-
-                // Read data from the source file and copy it to the target file
-                while ((bytesRead = inputStream.read()) != -1) {
-                    outputStream.write(bytesRead);
-                }
-
-                // Close the streams
-                inputStream.close();
-                outputStream.close();
-
-                System.out.println("File copied successfully.");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            Files.copy(sourceFile.toPath(), destinationFile.toPath(),StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            System.err.println("Failed to copy file: " + e.getMessage());
         }
     }
-
-
-        public void history () {
-
-            // to check if it has no args
-            if (parser.getFullCommand().length() != 7) {
-                System.out.println("Error: No arguments needed in history command");
-                return;
-            }
-
-            int i = 1;
-            for (String str : commands) {
-                System.out.println(i + "    " + str);
-                i++;
-            }
+    
+    public void cp_r(Vector<String> args){
+        if (args.size() != 2) {
+            System.out.println("Error: this command takes 2 arguments");
+            return;
         }
-    public void mkdir(Vector<String> args) {
-        for (String arg : args) {
-            File directory = new File(arg);
-            if (directory.mkdirs()) {
-                System.out.println("Directory created: " + directory.getAbsolutePath());
-            } else {
-                System.out.println("Failed to create directory: " + directory.getAbsolutePath());
-            }
+
+        String sourcePath = args.get(0);
+        String destinationPath = args.get(1);
+        
+        if((sourcePath.charAt(0) == '"') && (sourcePath.charAt(sourcePath.length()-1) == '"')){
+            sourcePath = sourcePath.substring(1,sourcePath.length()-1) ;
         }
-    }
-    public void rmdir(Vector<String> args) throws IOException {
+        
+        if((destinationPath.charAt(0) == '"') && (destinationPath.charAt(destinationPath.length()-1) == '"')){
+            destinationPath = destinationPath.substring(1,destinationPath.length()-1) ;
+        }
 
-        for (String arg : args) {
+        File sourceDir = new File(sourcePath);
+        if (!sourceDir.exists() || !sourceDir.isDirectory()) {
+            System.err.println("Source directory does not exist: " + sourcePath);
+            return;
+        }
 
-            if (arg.equals("*")) {
-                File currentDir = new File(".");
-                File[] subDirs = currentDir.listFiles();
+        File destinationDir = new File(destinationPath);
+        
+        if (!destinationDir.exists() || !destinationDir.isDirectory()) {
+            System.err.println("destination directory does not exist: " + sourcePath);
+            return;
+        }
+        
+        if (!destinationDir.canWrite()) {
+            System.err.println("Destination directory is not writable: " + destinationPath);
+            return;
+        }
 
-                if (subDirs != null) {
-                    for (File subDir : subDirs) {
-                        if (subDir.isDirectory() && subDir.list().length == 0) {
-                            subDir.delete();
-                            System.out.println("Removed empty directory: " + subDir.getName());
-                        }
+        if (sourceDir.getAbsolutePath().equals(destinationDir.getAbsolutePath())) {
+            System.err.println("Source and destination directories are the same");
+            return;
+        }
+
+        try{
+            Files.walk(sourceDir.toPath())
+                .filter(path -> path.toFile().isFile() || path.toFile().isDirectory())
+                .forEach(path -> {
+                    try {
+                        Files.copy(path, destinationDir.toPath().resolve(path), StandardCopyOption.REPLACE_EXISTING);
+                    } 
+                    catch (IOException e) {
+                        System.err.println("Failed to copy file: " + e.getMessage());
                     }
-                }
-            } else if (arg.length() > 1) {
-
-                File dir = new File(arg);
-                if (dir.isDirectory() && dir.list().length == 0) {
-                    dir.delete();
-                    System.out.println("Removed empty directory: " + dir.getName());
-                } else {
-                    System.out.println("Directory not found or not empty: " + dir.getName());
-                }
+                });
+        }
+        catch (IOException e) {
+            System.err.println("Failed to copy file: " + e.getMessage());
+        }
+    }
+    
+    public void history(){
+        if(!parser.getArgs().isEmpty()){
+            System.out.println("Error this command takes no arguments");
+        }
+        else{
+            for(int i = 0 ; i < History.size() ;i++){
+                System.out.println(i+1 +"  "+History.get(i));
             }
         }
     }
+    
+    public void rm(Vector<String> args){
+        if (args.size() != 1) {
+            System.out.println("Error: this command takes 1 argument");
+        } 
+        else {
+            String fullpath = args.get(0);
+            if ((fullpath.charAt(0) == '"') || (fullpath.charAt(fullpath.length() - 1) == '"')) {
+                fullpath = fullpath.substring(1, fullpath.length() - 1);
+            }
 
+            try {
+                File file = new File(fullpath);
+                if (!file.exists()) {
+                    throw new FileNotFoundException("File not found: " + fullpath);
+                }
+
+                if (file.isDirectory()) {
+                    throw new IOException("Cannot delete directory: " + fullpath);
+                }
+
+                if (!file.delete()) {
+                    throw new IOException("Failed to delete file: " + fullpath);
+                }
+            } 
+            catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
     }
+    
+    public void mkdir(Vector<String> args){
+        if(args.isEmpty()){
+            System.out.println("Error this command takes 1 or more arguments");
+        }
+        
+        for (String arg : args) {
 
+            String fullpath  = arg ;
 
+            if ((fullpath.charAt(0) == '"') || (fullpath.charAt(fullpath.length() - 1) == '"')) {
+                fullpath = fullpath.substring(1, fullpath.length() - 1);
+            }
+            
+            File directory = new File(fullpath).getAbsoluteFile();
+            File parentDir = directory.getParentFile();
+            if (parentDir != null && (!parentDir.exists() || !parentDir.canWrite())) {
+                System.err.println("Parent directory does not exist or is not writable: " + fullpath);
+                continue;
+            }
+
+            // Create the directory.
+            if (!directory.mkdir()) {
+                System.err.println("Failed to create directory: " + fullpath);
+                continue;
+            }
+
+            // Print a success message.
+            System.out.println("Directory created successfully: " + fullpath);
+
+            }        
+    }
+    
+}
